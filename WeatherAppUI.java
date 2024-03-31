@@ -50,7 +50,7 @@ public class WeatherAppUI extends JFrame {
                 if (!cityName.isEmpty()) {
                     Call backend = new Call();
                     backend.check_weather_name(cityName);
-                    resultTextArea.setText(""); // Clear text area before displaying new result
+                    resultTextArea.setText(""); 
                 } else {
                     JOptionPane.showMessageDialog(WeatherAppUI.this, "Please enter a city name");
                 }
@@ -64,7 +64,7 @@ public class WeatherAppUI extends JFrame {
                 if (!cityName.isEmpty()) {
                     Call backend = new Call();
                     backend.show_forecast(cityName);
-                    resultTextArea.setText(""); // Clear text area before displaying new result
+                    resultTextArea.setText(""); 
                 } else {
                     JOptionPane.showMessageDialog(WeatherAppUI.this, "Please enter a city name");
                 }
@@ -78,7 +78,7 @@ public class WeatherAppUI extends JFrame {
                 if (!cityName.isEmpty()) {
                     Call backend = new Call();
                     backend.show_dialogue(cityName);
-                    resultTextArea.setText(""); // Clear text area before displaying new result
+                    resultTextArea.setText(""); 
                 } else {
                     JOptionPane.showMessageDialog(WeatherAppUI.this, "Please enter a city name");
                 }
