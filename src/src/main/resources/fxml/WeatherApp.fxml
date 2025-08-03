@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.paint.Color?>
+
+<VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="com.weatherapp.WeatherAppController"
+      styleClass="weather-app"
+      prefWidth="800" prefHeight="600">
+    
+    <!-- Header -->
+    <HBox styleClass="header" alignment="CENTER_LEFT" spacing="20">
+        <padding>
+            <Insets top="20" right="30" bottom="20" left="30"/>
+        </padding>
+        
+        <!-- Logo -->
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Label text="☀️" styleClass="logo-icon"/>
+            <Label text="Just Weather" styleClass="logo-text"/>
+        </HBox>
+        
+        <!-- Search Bar -->
+        <TextField fx:id="searchField" promptText="Search for cities" styleClass="search-field" 
+                   HBox.hgrow="ALWAYS" maxWidth="300"/>
+        
+        <!-- Temperature Toggle -->
+        <HBox styleClass="temp-toggle" spacing="0">
+            <ToggleButton fx:id="fahrenheitBtn" text="°F" styleClass="temp-btn"/>
+            <ToggleButton fx:id="celsiusBtn" text="°C" styleClass="temp-btn" selected="true"/>
+        </HBox>
+    </HBox>
+    
+    <!-- Main Content -->
+    <VBox styleClass="main-content" spacing="30">
+        <padding>
+            <Insets top="0" right="30" bottom="30" left="30"/>
+        </padding>
+        
+        <!-- Current Weather Section -->
+        <VBox styleClass="current-weather" spacing="10">
+            <Label fx:id="cityLabel" text="Madrid" styleClass="city-name"/>
+            <HBox alignment="CENTER_LEFT" spacing="20">
+                <VBox alignment="CENTER_LEFT" spacing="5">
+                    <Label fx:id="temperatureLabel" text="16°" styleClass="temperature"/>
+                    <Label fx:id="minTempLabel" text="-1°" styleClass="min-temp"/>
+                </VBox>
+                <Label fx:id="weatherIcon" text="⛅" styleClass="weather-icon"/>
+            </HBox>
+        </VBox>
+        
+        <!-- Today's Forecast -->
+        <VBox styleClass="forecast-section" spacing="15">
+            <Label text="TODAY'S FORECAST" styleClass="section-title"/>
+            <ScrollPane styleClass="forecast-scroll" fitToWidth="true" hbarPolicy="NEVER">
+                <HBox fx:id="hourlyForecastContainer" styleClass="hourly-forecast" spacing="15"/>
+            </ScrollPane>
+        </VBox>
+        
+        <!-- Weather Details -->
+        <VBox styleClass="details-section" spacing="15">
+            <Label text="WEATHER DETAILS" styleClass="section-title"/>
+            <GridPane fx:id="detailsGrid" styleClass="details-grid" hgap="15" vgap="15">
+                <!-- Details will be populated by controller -->
+            </GridPane>
+        </VBox>
+    </VBox>
+    
+</VBox> 
