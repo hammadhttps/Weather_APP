@@ -1,16 +1,12 @@
-module com.example.project {
+module com.weatherapp {
     requires javafx.controls;
     requires javafx.fxml;
     requires javafx.web;
+    requires javafx.media;
+    requires com.google.gson;
+    requires java.net.http;
+    requires java.desktop;
 
-    requires org.controlsfx.controls;
-    requires com.dlsc.formsfx;
-    requires validatorfx;
-    requires org.kordamp.ikonli.javafx;
-    requires org.kordamp.bootstrapfx.core;
-    requires eu.hansolo.tilesfx;
-    requires com.almasb.fxgl.all;
-
-    opens com.example.project to javafx.fxml;
-    exports com.example.project;
+    opens com.weatherapp to javafx.fxml;
+    exports com.weatherapp;
 }
