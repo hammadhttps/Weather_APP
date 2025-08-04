@@ -15,10 +15,11 @@ public class WeatherApplication extends Application {
         primaryStage.setTitle("Just Weather - Modern Weather App");
         Scene scene = new Scene(root);
 
-        // Load CSS file
+        // Load CSS file programmatically as backup
         try {
             String css = getClass().getResource("/weather-app.css").toExternalForm();
             scene.getStylesheets().add(css);
+            System.out.println("CSS loaded successfully: " + css);
         } catch (Exception e) {
             System.err.println("Could not load CSS file: " + e.getMessage());
         }
@@ -27,14 +28,14 @@ public class WeatherApplication extends Application {
         primaryStage.setResizable(true);
         primaryStage.setMinWidth(800);
         primaryStage.setMinHeight(600);
-        
+
         // Set application icon (if available)
         try {
             primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/icon.png")));
         } catch (Exception e) {
             // Icon not found, continue without it
         }
-        
+
         primaryStage.show();
     }
 

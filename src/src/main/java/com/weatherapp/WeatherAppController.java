@@ -23,37 +23,64 @@ import java.util.prefs.Preferences;
 public class WeatherAppController implements Initializable {
 
     // FXML Components
-    @FXML private TextField searchField;
-    @FXML private Button darkModeToggle;
-    @FXML private Label darkModeIcon;
-    @FXML private ToggleButton fahrenheitBtn;
-    @FXML private ToggleButton celsiusBtn;
-    @FXML private Label cityLabel;
-    @FXML private Label temperatureLabel;
-    @FXML private Label minTempLabel;
-    @FXML private Label maxTempLabel;
-    @FXML private Label weatherIcon;
-    @FXML private Label weatherDescription;
-    @FXML private HBox hourlyForecastContainer;
-    @FXML private GridPane detailsGrid;
-    @FXML private GridPane airQualityGrid;
-    
+    @FXML
+    private TextField searchField;
+    @FXML
+    private Button darkModeToggle;
+    @FXML
+    private Label darkModeIcon;
+    @FXML
+    private ToggleButton fahrenheitBtn;
+    @FXML
+    private ToggleButton celsiusBtn;
+    @FXML
+    private Label cityLabel;
+    @FXML
+    private Label temperatureLabel;
+    @FXML
+    private Label minTempLabel;
+    @FXML
+    private Label maxTempLabel;
+    @FXML
+    private Label weatherIcon;
+    @FXML
+    private Label weatherDescription;
+    @FXML
+    private HBox hourlyForecastContainer;
+    @FXML
+    private GridPane detailsGrid;
+    @FXML
+    private GridPane airQualityGrid;
+
     // Loading and Error States
-    @FXML private StackPane loadingOverlay;
-    @FXML private ProgressIndicator progressIndicator;
-    @FXML private Label loadingText;
-    @FXML private VBox errorContainer;
-    @FXML private Label errorTitle;
-    @FXML private Label errorMessage;
-    @FXML private Button retryButton;
-    @FXML private HBox successContainer;
-    @FXML private Label successText;
-    
+    @FXML
+    private StackPane loadingOverlay;
+    @FXML
+    private ProgressIndicator progressIndicator;
+    @FXML
+    private Label loadingText;
+    @FXML
+    private VBox errorContainer;
+    @FXML
+    private Label errorTitle;
+    @FXML
+    private Label errorMessage;
+    @FXML
+    private Button retryButton;
+    @FXML
+    private HBox successContainer;
+    @FXML
+    private Label successText;
+
     // Containers
-    @FXML private VBox currentWeatherContainer;
-    @FXML private VBox forecastContainer;
-    @FXML private VBox detailsContainer;
-    @FXML private VBox airQualityContainer;
+    @FXML
+    private VBox currentWeatherContainer;
+    @FXML
+    private VBox forecastContainer;
+    @FXML
+    private VBox detailsContainer;
+    @FXML
+    private VBox airQualityContainer;
 
     // Services and State
     private WeatherAPIService apiService;
@@ -69,7 +96,7 @@ public class WeatherAppController implements Initializable {
         apiService = new WeatherAPIService();
         storageService = new FileStorageService();
         preferences = Preferences.userNodeForPackage(WeatherAppController.class);
-        
+
         setupEventHandlers();
         loadUserPreferences();
         setupAnimations();
@@ -82,13 +109,13 @@ public class WeatherAppController implements Initializable {
             if (searchDelayTimer != null) {
                 searchDelayTimer.stop();
             }
-            
+
             if (newValue != null && newValue.trim().length() > 2) {
                 searchDelayTimer = new Timeline(new KeyFrame(Duration.millis(500), e -> searchWeather()));
                 searchDelayTimer.play();
             }
         });
-        
+
         searchField.setOnAction(e -> searchWeather());
 
         // Dark mode toggle
@@ -121,15 +148,19 @@ public class WeatherAppController implements Initializable {
             searchWeather();
         });
 
-        // Keyboard shortcuts
-        searchField.getScene().setOnKeyPressed(event -> {
-            switch (event.getCode()) {
-                case F5:
-                    refreshWeatherData();
-                    break;
-                case ESCAPE:
-                    searchField.clear();
-                    break;
+        // Keyboard shortcuts - set up after scene is available
+        Platform.runLater(() -> {
+            if (searchField.getScene() != null) {
+                searchField.getScene().setOnKeyPressed(event -> {
+                    switch (event.getCode()) {
+                        case F5:
+                            refreshWeatherData();
+                            break;
+                        case ESCAPE:
+                            searchField.clear();
+                            break;
+                    }
+                });
             }
         });
     }
@@ -144,17 +175,17 @@ public class WeatherAppController implements Initializable {
     private void addEntranceAnimation(Node node, double delay) {
         node.setOpacity(0);
         node.setTranslateY(20);
-        
+
         FadeTransition fadeIn = new FadeTransition(Duration.millis(600), node);
         fadeIn.setFromValue(0);
         fadeIn.setToValue(1);
         fadeIn.setDelay(Duration.millis(delay));
-        
+
         TranslateTransition slideUp = new TranslateTransition(Duration.millis(600), node);
         slideUp.setFromY(20);
         slideUp.setToY(0);
         slideUp.setDelay(Duration.millis(delay));
-        
+
         ParallelTransition entrance = new ParallelTransition(fadeIn, slideUp);
         entrance.play();
     }
@@ -162,7 +193,7 @@ public class WeatherAppController implements Initializable {
     private void loadUserPreferences() {
         isDarkMode = preferences.getBoolean("darkMode", false);
         isCelsius = preferences.getBoolean("celsius", true);
-        
+
         updateDarkModeUI();
         celsiusBtn.setSelected(isCelsius);
         fahrenheitBtn.setSelected(!isCelsius);
@@ -181,24 +212,28 @@ public class WeatherAppController implements Initializable {
     }
 
     private void updateDarkModeUI() {
-        VBox root = (VBox) searchField.getScene().getRoot();
-        if (isDarkMode) {
-            root.getStyleClass().add("dark-theme");
-            darkModeIcon.setText("☀️");
-        } else {
-            root.getStyleClass().remove("dark-theme");
-            darkModeIcon.setText("🌙");
+        if (searchField.getScene() != null) {
+            VBox root = (VBox) searchField.getScene().getRoot();
+            if (isDarkMode) {
+                root.getStyleClass().add("dark-theme");
+                darkModeIcon.setText("☀️");
+            } else {
+                root.getStyleClass().remove("dark-theme");
+                darkModeIcon.setText("🌙");
+            }
         }
     }
 
     private void animateDarkModeTransition() {
-        VBox root = (VBox) searchField.getScene().getRoot();
-        FadeTransition fade = new FadeTransition(Duration.millis(300), root);
-        fade.setFromValue(1.0);
-        fade.setToValue(0.8);
-        fade.setAutoReverse(true);
-        fade.setCycleCount(2);
-        fade.play();
+        if (searchField.getScene() != null) {
+            VBox root = (VBox) searchField.getScene().getRoot();
+            FadeTransition fade = new FadeTransition(Duration.millis(300), root);
+            fade.setFromValue(1.0);
+            fade.setToValue(0.8);
+            fade.setAutoReverse(true);
+            fade.setCycleCount(2);
+            fade.play();
+        }
     }
 
     private void animateTemperatureChange() {
@@ -219,7 +254,7 @@ public class WeatherAppController implements Initializable {
         }
 
         showLoading("Searching for " + cityName + "...");
-        
+
         Task<WeatherData> weatherTask = new Task<WeatherData>() {
             @Override
             protected WeatherData call() throws Exception {
@@ -230,18 +265,18 @@ public class WeatherAppController implements Initializable {
                 }
 
                 updateMessage("Getting current weather...");
-                
+
                 // Get current weather
                 WeatherData weatherData = apiService.getCurrentWeather(coords[0], coords[1]);
-                
+
                 updateMessage("Getting forecast...");
-                
+
                 // Get forecast
                 List<WeatherData.HourlyForecast> forecast = apiService.getForecast(coords[0], coords[1]);
                 weatherData.setHourlyForecast(forecast);
 
                 updateMessage("Getting air quality data...");
-                
+
                 // Get air quality
                 try {
                     WeatherData.AirQuality airQuality = apiService.getAirQuality(coords[0], coords[1]);
@@ -292,7 +327,7 @@ public class WeatherAppController implements Initializable {
         if (!cache.isEmpty()) {
             currentWeatherData = cache.get(cache.size() - 1);
             updateWeatherDisplay();
-            
+
             // Refresh data in background
             Platform.runLater(() -> {
                 searchField.setText(currentWeatherData.getCityName());
@@ -308,7 +343,8 @@ public class WeatherAppController implements Initializable {
     }
 
     private void updateWeatherDisplay() {
-        if (currentWeatherData == null) return;
+        if (currentWeatherData == null)
+            return;
 
         // Animate content update
         animateContentUpdate(() -> {
@@ -326,17 +362,17 @@ public class WeatherAppController implements Initializable {
         FadeTransition fadeOut = new FadeTransition(Duration.millis(200), currentWeatherContainer);
         fadeOut.setFromValue(1.0);
         fadeOut.setToValue(0.3);
-        
+
         fadeOut.setOnFinished(e -> {
             updateContent.run();
-            
+
             // Fade in new content
             FadeTransition fadeIn = new FadeTransition(Duration.millis(400), currentWeatherContainer);
             fadeIn.setFromValue(0.3);
             fadeIn.setToValue(1.0);
             fadeIn.play();
         });
-        
+
         fadeOut.play();
     }
 
@@ -346,7 +382,8 @@ public class WeatherAppController implements Initializable {
     }
 
     private void updateTemperatureDisplay() {
-        if (currentWeatherData == null) return;
+        if (currentWeatherData == null)
+            return;
 
         double temp = currentWeatherData.getTemperature();
         double minTemp = currentWeatherData.getMinTemp();
@@ -367,12 +404,12 @@ public class WeatherAppController implements Initializable {
     private void updateWeatherIcon() {
         if (currentWeatherData != null) {
             String iconText = getWeatherEmoji(currentWeatherData.getIcon());
-            
+
             // Animate icon change
             RotateTransition rotate = new RotateTransition(Duration.millis(300), weatherIcon);
             rotate.setFromAngle(0);
             rotate.setToAngle(360);
-            
+
             ScaleTransition scale = new ScaleTransition(Duration.millis(300), weatherIcon);
             scale.setFromX(1.0);
             scale.setFromY(1.0);
@@ -380,7 +417,7 @@ public class WeatherAppController implements Initializable {
             scale.setToY(1.2);
             scale.setAutoReverse(true);
             scale.setCycleCount(2);
-            
+
             ParallelTransition iconAnimation = new ParallelTransition(rotate, scale);
             iconAnimation.setOnFinished(e -> weatherIcon.setText(iconText));
             iconAnimation.play();
@@ -396,22 +433,19 @@ public class WeatherAppController implements Initializable {
             for (int i = 0; i < Math.min(forecast.size(), 12); i++) {
                 WeatherData.HourlyForecast hourly = forecast.get(i);
                 VBox hourlyItem = createHourlyItem(hourly);
-                
+
                 // Add staggered entrance animation
                 hourlyItem.setOpacity(0);
                 hourlyItem.setTranslateY(20);
                 hourlyForecastContainer.getChildren().add(hourlyItem);
 
                 Timeline animation = new Timeline(
-                    new KeyFrame(Duration.millis(i * 50), 
-                        new KeyValue(hourlyItem.opacityProperty(), 0),
-                        new KeyValue(hourlyItem.translateYProperty(), 20)
-                    ),
-                    new KeyFrame(Duration.millis(300 + i * 50),
-                        new KeyValue(hourlyItem.opacityProperty(), 1),
-                        new KeyValue(hourlyItem.translateYProperty(), 0)
-                    )
-                );
+                        new KeyFrame(Duration.millis(i * 50),
+                                new KeyValue(hourlyItem.opacityProperty(), 0),
+                                new KeyValue(hourlyItem.translateYProperty(), 20)),
+                        new KeyFrame(Duration.millis(300 + i * 50),
+                                new KeyValue(hourlyItem.opacityProperty(), 1),
+                                new KeyValue(hourlyItem.translateYProperty(), 0)));
                 animation.play();
             }
         }
@@ -454,7 +488,8 @@ public class WeatherAppController implements Initializable {
     private void updateWeatherDetails() {
         detailsGrid.getChildren().clear();
 
-        if (currentWeatherData == null) return;
+        if (currentWeatherData == null)
+            return;
 
         int row = 0;
         int col = 0;
@@ -526,17 +561,14 @@ public class WeatherAppController implements Initializable {
 
             int index = detailsGrid.getChildren().indexOf(node);
             Timeline animation = new Timeline(
-                new KeyFrame(Duration.millis(index * 100),
-                    new KeyValue(node.opacityProperty(), 0),
-                    new KeyValue(node.scaleXProperty(), 0.8),
-                    new KeyValue(node.scaleYProperty(), 0.8)
-                ),
-                new KeyFrame(Duration.millis(400 + index * 100),
-                    new KeyValue(node.opacityProperty(), 1),
-                    new KeyValue(node.scaleXProperty(), 1),
-                    new KeyValue(node.scaleYProperty(), 1)
-                )
-            );
+                    new KeyFrame(Duration.millis(index * 100),
+                            new KeyValue(node.opacityProperty(), 0),
+                            new KeyValue(node.scaleXProperty(), 0.8),
+                            new KeyValue(node.scaleYProperty(), 0.8)),
+                    new KeyFrame(Duration.millis(400 + index * 100),
+                            new KeyValue(node.opacityProperty(), 1),
+                            new KeyValue(node.scaleXProperty(), 1),
+                            new KeyValue(node.scaleYProperty(), 1)));
             animation.play();
         }
     }
@@ -590,13 +622,13 @@ public class WeatherAppController implements Initializable {
         loadingText.setText(message);
         loadingOverlay.setVisible(true);
         loadingOverlay.setManaged(true);
-        
+
         // Animate loading appearance
         FadeTransition fadeIn = new FadeTransition(Duration.millis(300), loadingOverlay);
         fadeIn.setFromValue(0);
         fadeIn.setToValue(1);
         fadeIn.play();
-        
+
         hideError();
         hideSuccess();
     }
@@ -617,23 +649,20 @@ public class WeatherAppController implements Initializable {
         errorMessage.setText(message);
         errorContainer.setVisible(true);
         errorContainer.setManaged(true);
-        
+
         // Animate error appearance
         errorContainer.setOpacity(0);
         errorContainer.setTranslateY(20);
-        
+
         Timeline showError = new Timeline(
-            new KeyFrame(Duration.ZERO,
-                new KeyValue(errorContainer.opacityProperty(), 0),
-                new KeyValue(errorContainer.translateYProperty(), 20)
-            ),
-            new KeyFrame(Duration.millis(400),
-                new KeyValue(errorContainer.opacityProperty(), 1),
-                new KeyValue(errorContainer.translateYProperty(), 0)
-            )
-        );
+                new KeyFrame(Duration.ZERO,
+                        new KeyValue(errorContainer.opacityProperty(), 0),
+                        new KeyValue(errorContainer.translateYProperty(), 20)),
+                new KeyFrame(Duration.millis(400),
+                        new KeyValue(errorContainer.opacityProperty(), 1),
+                        new KeyValue(errorContainer.translateYProperty(), 0)));
         showError.play();
-        
+
         hideSuccess();
     }
 
@@ -654,11 +683,11 @@ public class WeatherAppController implements Initializable {
         successText.setText(message);
         successContainer.setVisible(true);
         successContainer.setManaged(true);
-        
+
         // Auto-hide after 3 seconds
         Timeline autoHide = new Timeline(new KeyFrame(Duration.seconds(3), e -> hideSuccess()));
         autoHide.play();
-        
+
         // Add success glow effect
         DropShadow glow = new DropShadow();
         glow.setColor(Color.rgb(76, 175, 80, 0.6));
@@ -686,54 +715,74 @@ public class WeatherAppController implements Initializable {
     }
 
     private String capitalizeWords(String text) {
-        if (text == null || text.isEmpty()) return text;
-        
+        if (text == null || text.isEmpty())
+            return text;
+
         String[] words = text.split(" ");
         StringBuilder result = new StringBuilder();
-        
+
         for (String word : words) {
             if (!word.isEmpty()) {
                 result.append(Character.toUpperCase(word.charAt(0)))
-                      .append(word.substring(1).toLowerCase())
-                      .append(" ");
+                        .append(word.substring(1).toLowerCase())
+                        .append(" ");
             }
         }
-        
+
         return result.toString().trim();
     }
 
     private String getWeatherEmoji(String iconCode) {
         switch (iconCode) {
-            case "01d": return "☀️";  // clear sky day
-            case "01n": return "🌙";  // clear sky night
-            case "02d": return "⛅";  // few clouds day
-            case "02n": return "☁️";  // few clouds night
+            case "01d":
+                return "☀️"; // clear sky day
+            case "01n":
+                return "🌙"; // clear sky night
+            case "02d":
+                return "⛅"; // few clouds day
+            case "02n":
+                return "☁️"; // few clouds night
             case "03d":
-            case "03n": return "☁️";  // scattered clouds
+            case "03n":
+                return "☁️"; // scattered clouds
             case "04d":
-            case "04n": return "☁️";  // broken clouds
+            case "04n":
+                return "☁️"; // broken clouds
             case "09d":
-            case "09n": return "🌧️"; // shower rain
-            case "10d": return "🌦️"; // rain day
-            case "10n": return "🌧️"; // rain night
+            case "09n":
+                return "🌧️"; // shower rain
+            case "10d":
+                return "🌦️"; // rain day
+            case "10n":
+                return "🌧️"; // rain night
             case "11d":
-            case "11n": return "⛈️"; // thunderstorm
+            case "11n":
+                return "⛈️"; // thunderstorm
             case "13d":
-            case "13n": return "❄️"; // snow
+            case "13n":
+                return "❄️"; // snow
             case "50d":
-            case "50n": return "🌫️"; // mist
-            default: return "🌤️";
+            case "50n":
+                return "🌫️"; // mist
+            default:
+                return "🌤️";
         }
     }
 
     private String getAQIDescription(int aqi) {
         switch (aqi) {
-            case 1: return "Good";
-            case 2: return "Fair";
-            case 3: return "Moderate";
-            case 4: return "Poor";
-            case 5: return "Very Poor";
-            default: return "Unknown";
+            case 1:
+                return "Good";
+            case 2:
+                return "Fair";
+            case 3:
+                return "Moderate";
+            case 4:
+                return "Poor";
+            case 5:
+                return "Very Poor";
+            default:
+                return "Unknown";
         }
     }
 }
