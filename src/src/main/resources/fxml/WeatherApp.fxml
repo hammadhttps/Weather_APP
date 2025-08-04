@@ -8,7 +8,8 @@
 <VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" 
       fx:controller="com.weatherapp.WeatherAppController"
       styleClass="weather-app"
-      prefWidth="1000" prefHeight="700">
+      prefWidth="1000" prefHeight="700"
+      stylesheets="@../weather-app.css">
     
     <!-- Header -->
     <HBox styleClass="header" alignment="CENTER_LEFT" spacing="20">
