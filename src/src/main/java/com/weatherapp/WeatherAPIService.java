@@ -83,6 +83,7 @@ public class WeatherAPIService {
         JsonObject weather = jsonObject.getAsJsonArray("weather").get(0).getAsJsonObject();
         JsonObject wind = jsonObject.getAsJsonObject("wind");
         JsonObject sys = jsonObject.getAsJsonObject("sys");
+        JsonObject coord = jsonObject.getAsJsonObject("coord");
 
         WeatherData weatherData = new WeatherData(
                 cityName,
@@ -101,6 +102,18 @@ public class WeatherAPIService {
         String sunrise = formatTime(sys.get("sunrise").getAsLong());
         String sunset = formatTime(sys.get("sunset").getAsLong());
         weatherData.setSunriseSunset(new WeatherData.SunriseSunset(sunrise, sunset));
+
+        // Set additional location data
+        weatherData.setLatitude(coord.get("lat").getAsDouble());
+        weatherData.setLongitude(coord.get("lon").getAsDouble());
+        if (sys.has("country")) {
+            weatherData.setCountry(sys.get("country").getAsString());
+        }
+        
+        // Set some default values for missing data
+        weatherData.setUvIndex(calculateUVIndex()); // Placeholder calculation
+        weatherData.setVisibility(10); // Default visibility
+        weatherData.setChanceOfRain(0); // Will be updated from forecast if available
 
         return weatherData;
     }
@@ -170,5 +183,11 @@ public class WeatherAPIService {
     private String formatTime(long timestamp) {
         LocalDateTime dateTime = LocalDateTime.ofEpochSecond(timestamp, 0, java.time.ZoneOffset.UTC);
         return dateTime.format(DateTimeFormatter.ofPattern("HH:mm"));
+    }
+    
+    private int calculateUVIndex() {
+        // Placeholder UV index calculation
+        // In a real implementation, you would use a UV index API
+        return (int) (Math.random() * 10) + 1;
     }
 }

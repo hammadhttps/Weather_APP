@@ -5,14 +5,14 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
+import javafx.scene.image.Image;
 
 public class WeatherApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("/fxml/WeatherApp.fxml"));
-        primaryStage.setTitle("Just Weather");
+        primaryStage.setTitle("Just Weather - Modern Weather App");
         Scene scene = new Scene(root);
 
         // Load CSS file
@@ -24,8 +24,17 @@ public class WeatherApplication extends Application {
         }
 
         primaryStage.setScene(scene);
-        primaryStage.setResizable(false);
-        primaryStage.initStyle(StageStyle.UNDECORATED);
+        primaryStage.setResizable(true);
+        primaryStage.setMinWidth(800);
+        primaryStage.setMinHeight(600);
+        
+        // Set application icon (if available)
+        try {
+            primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/icon.png")));
+        } catch (Exception e) {
+            // Icon not found, continue without it
+        }
+        
         primaryStage.show();
     }
 

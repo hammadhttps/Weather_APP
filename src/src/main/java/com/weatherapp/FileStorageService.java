@@ -9,11 +9,13 @@ import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class FileStorageService {
     private static final String DATA_DIR = "weather_data";
     private static final String CACHE_FILE = "weather_cache.json";
     private static final String LOCATIONS_FILE = "saved_locations.json";
+    private static final String PREFERENCES_FILE = "user_preferences.json";
     private static final Gson gson = new GsonBuilder()
             .setPrettyPrinting()
             .setLenient()
@@ -32,6 +34,8 @@ public class FileStorageService {
                 }
             })
             .create();
+    
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     public FileStorageService() {
         createDataDirectory();
@@ -45,41 +49,46 @@ public class FileStorageService {
     }
 
     public void saveWeatherData(WeatherData weatherData) {
-        try {
+        lock.writeLock().lock();
+        try (FileWriter writer = new FileWriter(DATA_DIR + File.separator + 
+                weatherData.getCityName().replaceAll("[^a-zA-Z0-9]", "_") + "_weather.json")) {
             String cityName = weatherData.getCityName().replaceAll("[^a-zA-Z0-9]", "_");
-            String fileName = DATA_DIR + File.separator + cityName + "_weather.json";
-
-            FileWriter writer = new FileWriter(fileName);
             gson.toJson(weatherData, writer);
-            writer.close();
 
             // Also save to cache
             saveToCache(weatherData);
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
     public WeatherData loadWeatherData(String cityName) {
-        try {
+        lock.readLock().lock();
+        try (FileReader reader = new FileReader(DATA_DIR + File.separator + 
+                cityName.replaceAll("[^a-zA-Z0-9]", "_") + "_weather.json")) {
             String fileName = DATA_DIR + File.separator + cityName.replaceAll("[^a-zA-Z0-9]", "_") + "_weather.json";
             File file = new File(fileName);
 
             if (file.exists()) {
-                FileReader reader = new FileReader(file);
                 WeatherData weatherData = gson.fromJson(reader, WeatherData.class);
-                reader.close();
                 return weatherData;
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            lock.readLock().unlock();
         }
         return null;
     }
 
     private void saveToCache(WeatherData weatherData) {
-        try {
+        try (FileWriter writer = new FileWriter(DATA_DIR + File.separator + CACHE_FILE)) {
             List<WeatherData> cache = loadCache();
+            
+            // Remove existing entry for the same city
+            cache.removeIf(data -> data.getCityName().equalsIgnoreCase(weatherData.getCityName()));
             cache.add(weatherData);
 
             // Keep only last 10 entries
@@ -87,33 +96,33 @@ public class FileStorageService {
                 cache = cache.subList(cache.size() - 10, cache.size());
             }
 
-            FileWriter writer = new FileWriter(DATA_DIR + File.separator + CACHE_FILE);
             gson.toJson(cache, writer);
-            writer.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public List<WeatherData> loadCache() {
-        try {
+        lock.readLock().lock();
+        try (FileReader reader = new FileReader(DATA_DIR + File.separator + CACHE_FILE)) {
             File file = new File(DATA_DIR + File.separator + CACHE_FILE);
             if (file.exists()) {
-                FileReader reader = new FileReader(file);
                 Type listType = new TypeToken<ArrayList<WeatherData>>() {
                 }.getType();
                 List<WeatherData> cache = gson.fromJson(reader, listType);
-                reader.close();
                 return cache != null ? cache : new ArrayList<>();
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            lock.readLock().unlock();
         }
         return new ArrayList<>();
     }
 
     public void saveLocation(String cityName, double lat, double lon) {
-        try {
+        lock.writeLock().lock();
+        try (FileWriter writer = new FileWriter(DATA_DIR + File.separator + LOCATIONS_FILE)) {
             List<Location> locations = loadLocations();
 
             // Check if location already exists
@@ -122,44 +131,77 @@ public class FileStorageService {
 
             if (!exists) {
                 locations.add(new Location(cityName, lat, lon));
+                
+                // Keep only last 20 locations
+                if (locations.size() > 20) {
+                    locations = locations.subList(locations.size() - 20, locations.size());
+                }
 
-                FileWriter writer = new FileWriter(DATA_DIR + File.separator + LOCATIONS_FILE);
                 gson.toJson(locations, writer);
-                writer.close();
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
     public List<Location> loadLocations() {
-        try {
+        lock.readLock().lock();
+        try (FileReader reader = new FileReader(DATA_DIR + File.separator + LOCATIONS_FILE)) {
             File file = new File(DATA_DIR + File.separator + LOCATIONS_FILE);
             if (file.exists()) {
-                FileReader reader = new FileReader(file);
                 Type listType = new TypeToken<ArrayList<Location>>() {
                 }.getType();
                 List<Location> locations = gson.fromJson(reader, listType);
-                reader.close();
                 return locations != null ? locations : new ArrayList<>();
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            lock.readLock().unlock();
         }
         return new ArrayList<>();
     }
 
     public void deleteLocation(String cityName) {
-        try {
+        lock.writeLock().lock();
+        try (FileWriter writer = new FileWriter(DATA_DIR + File.separator + LOCATIONS_FILE)) {
             List<Location> locations = loadLocations();
             locations.removeIf(loc -> loc.getCityName().equalsIgnoreCase(cityName));
 
-            FileWriter writer = new FileWriter(DATA_DIR + File.separator + LOCATIONS_FILE);
             gson.toJson(locations, writer);
-            writer.close();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            lock.writeLock().unlock();
         }
+    }
+    
+    public void saveUserPreferences(UserPreferences preferences) {
+        lock.writeLock().lock();
+        try (FileWriter writer = new FileWriter(DATA_DIR + File.separator + PREFERENCES_FILE)) {
+            gson.toJson(preferences, writer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+    
+    public UserPreferences loadUserPreferences() {
+        lock.readLock().lock();
+        try (FileReader reader = new FileReader(DATA_DIR + File.separator + PREFERENCES_FILE)) {
+            File file = new File(DATA_DIR + File.separator + PREFERENCES_FILE);
+            if (file.exists()) {
+                return gson.fromJson(reader, UserPreferences.class);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            lock.readLock().unlock();
+        }
+        return new UserPreferences(); // Return default preferences
     }
 
     public static class Location {
@@ -197,5 +239,29 @@ public class FileStorageService {
         public void setLongitude(double longitude) {
             this.longitude = longitude;
         }
+    }
+    
+    public static class UserPreferences {
+        private boolean darkMode = false;
+        private boolean celsius = true;
+        private String defaultCity = "Madrid";
+        private boolean autoRefresh = true;
+        private int refreshInterval = 300; // seconds
+        
+        // Getters and setters
+        public boolean isDarkMode() { return darkMode; }
+        public void setDarkMode(boolean darkMode) { this.darkMode = darkMode; }
+        
+        public boolean isCelsius() { return celsius; }
+        public void setCelsius(boolean celsius) { this.celsius = celsius; }
+        
+        public String getDefaultCity() { return defaultCity; }
+        public void setDefaultCity(String defaultCity) { this.defaultCity = defaultCity; }
+        
+        public boolean isAutoRefresh() { return autoRefresh; }
+        public void setAutoRefresh(boolean autoRefresh) { this.autoRefresh = autoRefresh; }
+        
+        public int getRefreshInterval() { return refreshInterval; }
+        public void setRefreshInterval(int refreshInterval) { this.refreshInterval = refreshInterval; }
     }
 }
