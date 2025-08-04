@@ -20,14 +20,6 @@ A beautiful, modern weather application built with JavaFX that provides real-tim
 - **Temperature Units**: Toggle between Celsius and Fahrenheit
 - **City Search**: Search for any city worldwide
 
-## Screenshots
-
-The application features a modern interface similar to popular weather apps with:
-- Header with logo, search bar, and temperature unit toggle
-- Current weather display with large temperature and weather icon
-- Horizontal scrolling hourly forecast
-- Grid layout of weather details with icons
-
 ## Technologies Used
 
 - **JavaFX 17**: Modern UI framework
